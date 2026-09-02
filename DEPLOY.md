@@ -1,26 +1,28 @@
-# Deploy with GitHub Actions
+# Deploy
 
-GitHub-hosted runners **cannot** accept inbound GunBound TCP (`8372/8360/8352`).
-To stay online without a VPS, the **Online** workflow deploys to [Fly.io](https://fly.io) (free account).
+## Método grátis (sem VPS, sem cartão)
 
-## Online without a VPS
+GitHub Actions e o plano grátis da Fly **não** abrem TCP `8372/8360/8352`.
+O caminho zero-custo é rodar o servidor no seu PC e publicar com [playit.gg](https://playit.gg) (3 túneis TCP no free).
 
-1. Create a Fly.io account: https://fly.io/docs/hands-on/sign-up/
-2. Install flyctl and run `fly auth token`
-3. Repo → **Settings → Secrets → Actions** → `FLY_API_TOKEN`
-4. **Actions → Online → Run workflow**
+```bash
+git clone https://github.com/ramondiver/GunBound-Java-Server.git
+cd GunBound-Java-Server
+bash scripts/free-online.sh
+```
 
-The job builds `Dockerfile.online` (MariaDB + Game/Broker/Buddy in one machine),
-allocates a public IPv4 in `gru` (São Paulo) and prints it in the log.
-Point the GunBound client broker to that IPv4, port **8372**.
+1. Conta em https://playit.gg/login/create
+2. `docker compose -f docker-compose.free.yml logs -f playit` — abra o link de claim
+3. Crie 3 túneis Custom:
+   - Broker TCP → `gameserver:8372`
+   - Game TCP → `gameserver:8360`
+   - Buddy TCP → `gameserver:8352`
+4. No `config/config.properties`, `server.public.ip` e `gameserver.port` são o **host:porta público do túnel Game**
+5. No client, o broker é o **host:porta público do túnel Broker**
+6. `docker compose -f docker-compose.free.yml restart gameserver`
 
-Test accounts after first boot: `admin/admin`, `player/player`.
+O computador precisa ficar ligado. Contas seed: `admin/admin`, `player/player`.
 
-## Other workflows
+## Fly.io / VPS (pago ou com cartão cadastrado)
 
-| Workflow | When | What |
-|---|---|---|
-| `ci.yml` | push / PR | Compiles the fat JAR |
-| `release.yml` | push `main` | Pushes `ghcr.io/ramondiver/gunbound-java-server` |
-| `online.yml` | manual or push | Deploys to Fly.io |
-| `deploy.yml` | optional | SSH deploy if you later get a VPS |
+Ver workflow `online.yml` e `deploy.yml`.
