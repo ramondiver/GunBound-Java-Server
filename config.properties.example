@@ -1,0 +1,39 @@
+# Copy this file to config/config.properties
+#   mkdir -p config && cp config.properties.example config/config.properties
+
+server.public.ip=127.0.0.1
+server.bind.ip=0.0.0.0
+
+broker.port=8372
+broker.serv1.name=GunBound Legacy
+broker.serv1.descr=Avatar OFF
+
+gameserver.port=8360
+gameserver.tank.hidden.ratio=10
+gameserver.goldfactor=100
+gameserver.scorefactor=100
+gameserver.stage0_probability=5
+gameserver.eventtrigger=1
+gameserver.eventactprop=50
+gameserver.honkprice=10000
+gameserver.balloonprice=50000
+gameserver.colorprice=50000
+gameserver.superuseritem=204801
+gameserver.channelment=#GunBound Legacy Thor's Hammer
+gameserver.channeldaymsg=*Bom Dia
+gameserver.channelafternoonmsg=*Boa Tarde
+gameserver.channelnightmsg=*Boa Noite
+gameserver.roomment=&Jogue Limpo!
+gameserver.versionfirst=100
+gameserver.versionlast=900
+gameserver.passableauthority=0
+gameserver.funcrestrict=1040384
+
+buddy.port=8352
+buddy.udp.port=8381
+
+# MariaDB inside docker compose (service name = mariadb)
+db.url=jdbc:mariadb://mariadb:3306/gbth?useSSL=false&allowPublicKeyRetrieval=true
+db.user=gunbound
+db.password=gunbound
+db.useSSL=false
