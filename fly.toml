@@ -1,0 +1,53 @@
+app = "gunbound-th-ramondiver"
+primary_region = "gru"
+
+[build]
+  dockerfile = "Dockerfile.online"
+
+[env]
+  SERVER_BIND_IP = "0.0.0.0"
+  JAVA_OPTS = "-XX:+UseG1GC -XX:MaxRAMPercentage=50"
+
+[[vm]]
+  size = "shared-cpu-2x"
+  memory = "2048mb"
+
+[mounts]
+  source = "gunbound_data"
+  destination = "/var/lib/mysql"
+
+[[services]]
+  internal_port = 8372
+  protocol = "tcp"
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1
+  [[services.ports]]
+    port = 8372
+
+[[services]]
+  internal_port = 8360
+  protocol = "tcp"
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1
+  [[services.ports]]
+    port = 8360
+
+[[services]]
+  internal_port = 8352
+  protocol = "tcp"
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1
+  [[services.ports]]
+    port = 8352
+
+[[services]]
+  internal_port = 8381
+  protocol = "udp"
+  auto_stop_machines = false
+  auto_start_machines = true
+  min_machines_running = 1
+  [[services.ports]]
+    port = 8381
