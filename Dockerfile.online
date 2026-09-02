@@ -1,0 +1,31 @@
+# syntax=docker/dockerfile:1
+# All-in-one image: MariaDB + GunBound (no external VPS / extra DB host).
+FROM eclipse-temurin:21-jre-jammy
+
+USER root
+RUN apt-get update \
+    && DEBIAN_FRONTEND=noninteractive apt-get install -y --no-install-recommends \
+        mariadb-server curl ca-certificates \
+    && rm -rf /var/lib/apt/lists/* \
+    && mkdir -p /app/config /app/sql /var/run/mysqld \
+    && chown mysql:mysql /var/run/mysqld
+
+WORKDIR /app
+
+COPY target/gunbound-server.jar /app/gunbound-server.jar
+COPY config.properties.example /app/config/config.properties
+COPY src/main/resources/db.sql /app/sql/01-schema.sql
+COPY scripts/mariadb-init/02-seed.sql /app/sql/02-seed.sql
+COPY scripts/online-entrypoint.sh /app/online-entrypoint.sh
+RUN chmod +x /app/online-entrypoint.sh
+
+EXPOSE 8372/tcp 8360/tcp 8352/tcp 8381/udp 3306/tcp
+
+ENV JAVA_OPTS="-XX:+UseG1GC -XX:MaxRAMPercentage=50" \
+    SERVER_BIND_IP=0.0.0.0 \
+    DB_URL=jdbc:mariadb://127.0.0.1:3306/gbth?useSSL=false\&allowPublicKeyRetrieval=true \
+    DB_USER=gunbound \
+    DB_PASSWORD=gunbound \
+    DB_USESSL=false
+
+ENTRYPOINT ["/app/online-entrypoint.sh"]
