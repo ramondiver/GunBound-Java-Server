@@ -1,0 +1,70 @@
+# Free public access: run this on YOUR PC (no VPS, no credit card).
+# Playit.gg free tier = 3 TCP tunnels (Broker + Game + Buddy).
+#
+#   docker compose -f docker-compose.free.yml up -d
+#   docker compose -f docker-compose.free.yml logs -f playit
+
+services:
+  mariadb:
+    image: mariadb:10.11
+    container_name: gunbound-mariadb
+    restart: unless-stopped
+    environment:
+      MARIADB_ROOT_PASSWORD: gunbound
+      MARIADB_DATABASE: gbth
+      MARIADB_USER: gunbound
+      MARIADB_PASSWORD: gunbound
+      TZ: America/Sao_Paulo
+    command:
+      - --character-set-server=latin1
+      - --collation-server=latin1_swedish_ci
+      - --sql-mode=NO_ENGINE_SUBSTITUTION
+    volumes:
+      - gunbound-mariadb-data:/var/lib/mysql
+      - ./src/main/resources/db.sql:/docker-entrypoint-initdb.d/01-schema.sql:ro
+      - ./scripts/mariadb-init/02-seed.sql:/docker-entrypoint-initdb.d/02-seed.sql:ro
+    healthcheck:
+      test: ["CMD", "healthcheck.sh", "--connect", "--innodb_initialized"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    networks: [gunbound]
+
+  gameserver:
+    image: ${GUNBOUND_IMAGE:-ghcr.io/ramondiver/gunbound-java-server:latest}
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: gunbound-server
+    restart: unless-stopped
+    depends_on:
+      mariadb:
+        condition: service_healthy
+    ports:
+      - "8372:8372"
+      - "8360:8360"
+      - "8352:8352"
+      - "8381:8381/udp"
+    volumes:
+      - ./config:/app/config
+    networks: [gunbound]
+
+  playit:
+    image: ghcr.io/playit-cloud/playit-agent:latest
+    container_name: gunbound-playit
+    restart: unless-stopped
+    depends_on:
+      - gameserver
+    environment:
+      SECRET_KEY: ${PLAYIT_SECRET_KEY:-}
+    volumes:
+      - playit-data:/config
+    networks: [gunbound]
+
+networks:
+  gunbound:
+    driver: bridge
+
+volumes:
+  gunbound-mariadb-data:
+  playit-data:
